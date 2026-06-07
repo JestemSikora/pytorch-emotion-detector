@@ -1,0 +1,17 @@
+[project]
+name = "msi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "~=3.10.0"
+dependencies = [
+    "jupyter-core>=5.9.1",
+    "matplotlib>=3.10.9",
+    "notebook>=7.5.6",
+    "numpy>=2.2.6",
+    "scikit-learn>=1.7.2",
+    "seaborn>=0.13.2",
+    "torch>=2.4.1",
+    "torch-directml>=0.2.5.dev240914",
+    "torchvision>=0.19.1",
+]
