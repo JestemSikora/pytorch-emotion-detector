@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Środowisko wirtualne
+.venv/
+venv/
+env/
+
+# Dane i modele
+data/
+*.pth
+*.pt
+
+# Jupyter
+.ipynb_checkpoints/
+
+# System
+.DS_Store
+Thumbs.db
