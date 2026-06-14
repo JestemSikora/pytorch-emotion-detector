@@ -34,3 +34,28 @@ def get_transforms(model_name, mean=None, std=None):
             std=std  if std  is not None else p['std'],
         ),
     ])
+
+
+def get_minority_transforms(model_name, mean=None, std=None):
+    """Mocniejszy transform dla disgusted."""
+    if model_name not in _PARAMS:
+        raise ValueError(f"Nieznany model: '{model_name}'. Dostępne: {list(_PARAMS.keys())}")
+    p = _PARAMS[model_name]
+    _mean = mean if mean is not None else p['mean']
+    _std  = std  if std  is not None else p['std']
+    return transforms.Compose([
+        transforms.Resize(p['resize']),
+        transforms.CenterCrop(p['crop']),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=12),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3),
+        transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.5)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=_mean, std=_std),
+        transforms.RandomErasing(
+            p=0.5,
+            scale=(0.02, 0.15),
+            ratio=(0.3, 3.0),
+            value=0,
+        ),
+    ])

@@ -1,0 +1,243 @@
+﻿Liczba stron: 12
+
+=== STRONA 1 ===
+Pattern Recognition 137 (2023) 109347
+Contents lists available at ScienceDirect
+Pattern Recognition
+journal homepage: www.elsevier.com/locate/patcog
+A Comprehensive Survey of Image Augmentation Techniques for Deep
+Learning
+Mingle Xu a, Sook Yoon b , ∗, Alvaro Fuentes c, Dong Sun Park c , ∗
+a Department of Electronics Engineering, Jeonbuk National University, Jeonbuk 54896, South Korea
+b Department of Computer Engineering, Mokpo National University, Jeonnam 58554, South Korea
+c Core Research Institute of Intelligent Robots, Jeonbuk National University, Jeonbuk 54896, South Korea
+a r t i c l e i n f o a b s t r a c t
+Article history: Although deep learning has achieved satisfactory performance in computer vision, a large volume of im-
+Received 28 April 2022 ages is required. However, collecting images is often expensive and challenging. Many image augmenta-
+Revised 22 November 2022 tion algorithms have been proposed to alleviate this issue. Understanding existing algorithms is, therefore,
+Accepted 15 January 2023
+essential for finding suitable and developing novel methods for a given task. In this study, we perform
+Available online 18 January 2023
+a comprehensive survey of image augmentation for deep learning using a novel informative taxonomy.
+Keywords: To examine the basic objective of image augmentation, we introduce challenges in computer vision tasks
+Image augmentation and vicinity distribution. The algorithms are then classified among three categories: model-free, model-
+Deep learning based, and optimizing policy-based. The model-free category employs the methods from image process-
+Image variation ing, whereas the model-based approach leverages image generation models to synthesize images. In con-
+Vicinity distribution trast, the optimizing policy-based approach aims to find an optimal combination of operations. Based
+Data augmentation
+on this analysis, we believe that our survey enhances the understanding necessary for choosing suitable
+Computer vision
+methods and designing novel algorithms.
+©2023 The Author(s). Published by Elsevier Ltd.
+This is an open access article under the CC BY-NC-ND license
+( http://creativecommons.org/licenses/by-nc-nd/4.0/ )
+1. Introduction previously [5–7] , our study is characterized by several essential
+differences. First, we do not confine ourselves to a specific type
+Over the recent years, deep learning has achieved significant of image, such as facial images [8] . Likewise, we consider many
+improvements in computer vision based on three key elements, ef- types of image augmentation algorithms, including generative
+ficient computing devices, powerful algorithms, and large volumes adversarial networks [9] and image mixing [10] . Third, we do
+of images. A main work over the last decade was designing a pow- not focus on a specific application, such as object detection [5] .
+erful model with numerous trainable parameters 1 . The training of Conversely, we consider image classification and object detection
+such a 
+
+=== STRONA 2 ===
+M. Xu, S. Yoon, A. Fuentes et al. Pattern Recognition 137 (2023) 109347
+Table 1
+Image augmentation algorithms used studies pertaining to image classification (up)
+and object detection (bottom).
+Paper Image augmentation method
+AlexNet [11] Translate, Flip, Intensity Changing
+ResNet [12] Crop, Flip
+DenseNet [13] Flip, Crop, Translate
+MobileNet [14] Crop, Elastic distortion
+NasNet [15] Cutout, Crop, Flip
+ResNeSt [16] AutoAugment, Mixup, Crop
+DeiT [17] AutoAugmentat, RandAugment, Random Erasing,
+Mixup, CutMix
+Swin Transformer [18] RandAugment, Mixup, CutMix, Random Erasing
+Faster R-CNN [19] Flip
+YOLO [20] Scale, Translate, Color space
+SSD [21] Crop, Resize, Flip, Color Space, Distortion
+YOLOv4 [22] Mosaic, Distortion, Scale, Color space, Crop, Flip,
+Rotate, Random erase, Cutout, Hide-and-Seek,
+GridMask, Mixup, CutMix, StyleGAN
+methods are promising when new challenges are recognized. Fig. 1. Example of image variations from Class CS231n.
+Simultaneously, once a challenge is observed in an application, it
+can be mitigated using an appropriate augmentation method.
+In summary, our study makes the following contributions.
+not utilize a pre-trained model to perform image augmentation,
+• We examine challenges and vicinity distribution to demonstrate and may use single or multiple images. Conversely, model-based
+the necessity of image augmentation for deep learning. algorithms require the image augmentation algorithms to gener-
+• We present a comprehensive survey on image augmentation ate images using trained models. The augmentation process may
+with a novel informative taxonomy that encompasses a wider be unconditional, label-conditional, or image-conditional. Finally,
+range of algorithms. optimizing policy-based algorithms determine the optimal oper-
+• We discuss the current situation and future direction for image ations with suitable parameters from a large parameter space.
+augmentation, along with three relevant topics: understanding These algorithms can further be sub-categorized into reinforce-
+image augmentation, new strategy to leverage image augmen- ment learning-based and adversarial learning-based methods. The
+tation, and feature augmentation. former leverages a massive search space consisting of diverse op-
+erations and their magnitudes, along with an agent to find the
+The remainder of this paper is organized as follows. The second
+optimal policy within the search space. In contrast, adversarial
+section introduces the research taxonomy. We then present two
+learning-based methods locate algorithms with the corresponding
+basic inspirations of image augmentation in the third section: the
+magnitude to allow the task model to have a sufficiently large
+challenges of computer vision tasks and the vicinity distribution.
+loss.
+Model-free image augmentation is covered in the fourth section,
+whereas the model-based methods are discussed in the fifth sec-
+tion. The process of determining an optimal image augmentation
+is introduced in the sixth section, foll
+
+=== STRONA 3 ===
+M. Xu, S. Yoon, A. Fuentes et al. Pattern Recognition 137 (2023) 109347
+Table 3
+Challenges in computer vision tasks from the perspectives of datasets and deep learning models.
+Challenges Descriptions Strategies and related studies
+Images variations The following basic variations exist in many datasets Geometrical transformation and color image processing improve the majority
+and applications, including illumination, deformation, of the variations. Occlusion: Hide-and-Seek [23] , Cutout [24] , Random Erasing
+occlusion, background, viewpoint, and multiscale, as [25] , GridMask [26] . Background or context: CutMix [30] , Mosaic [22] , CutPas
+shown in Fig. 1 . [36] . Multiscale: Scale and Blend [37] , Simple CutPas [39] .
+Class imbalance Number of images vary between classes or some Reusing instance from minority class is one strategy by instance-level
+and few images classes have only few images. operation, Simple Copy-Paste [39] . Most studies attempt to generate images for
+the minority class: ImbCGAN [46] , DAGAN [48] , MFC-GAN [49] , EmoGAN [56] ,
+δ-encoder [57] , GAN-MBD [60] , SCIT [2] .
+Domain shift Training and testing datasets represent different Changing styles for existing images is a main strategy, including S + U Learning
+domains, commonly referring to styles. [51] , StyleAug [54] , Shape bias [55] , Debiased NN [58] , StyleMix [59] .
+Data remembering Larger models with many learnable parameters tend to The mechanism is increasing dataset size within or between vicinity
+remember specific data points, which may result in distributions. Within version assumes label-preserving while between version
+overfitting. changes labels, such as Mixup [28] , AugMix [31] , Co-Mixup [33] .
+age variations 2 . Class imbalance is another challenge, wherein dif- Dirac mass function with an estimate of the density in the vicinity
+ferent objects are observed with different frequencies. In medical of point (x i , y i ) [79] :
+i i a m s n c a f e u g d r in t h d g e , a r t a a b e s n e x o t a , r c m a e r a m b l a o c te d a d s e e l s b a y o s s f i t p g e r n n iv s a o a c c y c h . u i r W g h w h e i e r t n h p r a t o r l b a o i a w n b e i l d p it r y o w b t i a o th b t il h a it e n y , n i w m or h b m i a c a l h - l P v ( x, y ) = 1 n (cid:3) i = n 1 δ v ( x = x i , y = y i ) , (2)
+c c a la s s e s . e B s e t s o id o e n s, e c c la la ss s s i . m Fu ba rt l h an er c m e o b r e e c , o d m o e m s a f i e n w s h i i m ft a r g e e p s r e fr s o e m nt s m a u l c t h ip a l l e - w di h st e r r i e b u δ ti v o n is a t s h s e u m vi e c s i ni t t h y a t p o P i ( n x t , y s ) e t is o f sm (x o i , o y t i h ) i a n r o D un . d T h a e n y v ic p i o n i i n ty t
+l t e ri n b g u e t i w on h s e . r T e h t i h s e i s t r e a x i e n m in p g l i a fi n e d d t b e y s t t i h n e g n d i a g t h as t e a t n s d e x d h a i y b i d t o d m if a fe in re s n i t n d t i h s e - (x i , y i ) [77] . In P v (x, y ) , models 
+
+=== STRONA 4 ===
+M. Xu, S. Yoon, A. Fuentes et al. Pattern Recognition 137 (2023) 109347
+Table 4
+Studies focusing upon intensity transformations. Each study is highlighted with its corresponding figure if available.
+Paper Year Highlight
+Hide-and-Seek [23] 2017 Split an image into patches that are randomly blocked.
+Cutout [24] 2017 Apply a fixed-size mask to a random location for each image.
+Random Erasing [25] 2020 Randomly select a rectangular region and displace its pixels with random values. Fig. 3 .
+GridMask [26] 2020 Apply multiscale grid masks to an image to mimic occlusions. Fig. 4 .
+the Cityscapes [81] dataset can be augmented horizontally but not
+vertically. In addition, objects can be magnified or shrunk via scal-
+ing to mimic multiscale variation. Finally, elastic distortion can al-
+ter the shape or posture of an object. Among these methods, flips
+have been commonly utilized throughout many studies over the
+last decade for various computer vision tasks, such as image clas-
+sification [11–13] , object detection [82,83] , and image translation
+[84,85] . Two factors must be considered when using these meth-
+ods: the magnitude of the operation to preserve label identity and
+variations in the dataset.
+4.1.2. Color image processing
+Unlike greyscale images, color images consist of three channels.
+Color image processing for augmentation assumes that the train-
+ing and testing dataset distributions fluctuate in terms of colors,
+Fig. 2. Hide-and-Seek [23] carries out image augmentation where one image is
+such as contrast. Although color image processing yields superior split into several patches, and each patch is randomly blocked with a specified
+performance, it is rarely used because the color variations between probability.
+the training and testing datasets are small. However, one interest-
+ing point is the use of robust features for contrast learning [86] via
+and a preliminary experiment suggests that it has a lower chance
+color image processing, which represents a case of task-agnostic
+of producing failure cases than Cutout [24] and Hide-and-See [23] .
+learning.
+4.1.3. Intensity transformation 4.2. Multiple-image augmentation
+Unlike geometric transformations and color image processing,
+intensity transformations entail changes at the pixel or patch lev- Multiple-image augmentation (MiA) algorithms are executed on
+els. Random noise, such as Gaussian noise, is one of the sim- more than one image. These methods can further be categorized as
+plest intensity transformation algorithms [75] . The classical meth- instance- and non-instance-level. Because one image may include
+ods leverage random noise independently at the pixel level; how- more than one instance, we can mask instances and use them in-
+ever, the patch level has recently exhibited significant improve- dependently. Unlike SiA, MiA requires algorithms to merge multi-
+ment for deep learning algorithms [23–26] . Studies pertaining to ple input instances.
+intensity transformations are listed in Table 4 . T
+
+=== STRONA 5 ===
+M. Xu, S. Yoon, A. Fuentes et al. Pattern Recognition 137 (2023) 109347
+Fig. 3. Examples of Random Erasing [25] .
+Table 5
+Studies related to multiple-image augmentation, divided into non-instance- (up) and instance-level (bottom).
+Paper Year Highlight
+SamplePairing [27] 2018 Combine two images with a single label.
+Mixup [28] 2018 Linearly fuse images and their labels. Fig. 5 .
+BC Learning [29] 2018 Combine two images and their labels. Treat the image as a waveform, and declare that image mixing makes sense
+for machines.
+CutMix [30] 2019 Spatially fuse two images and linearly fuse the labels. Fig. 5 .
+Mosaic [22] 2020 Spatially mix four images and their annotations, thereby enriching the context for each class.
+AugMix [31] 2020 One image undergoes several basic augmentations, and the results are fused with the original image.
+PuzzleMix [32] 2020 Optimize a mask for fusing two images to utilize the salient information and underlying statistics.
+Co-Mixup [33] 2021 Maximize the salient signal of input images and diversity among the augmented images.
+SuperMix [34] 2021 Optimize a mask for fusing two images to exploit the salient region with the Newton iterative method, 65x faster
+than gradient descent.
+GridMix [35] 2021 Split two images into patches, spatially fuse the patches, and linearly merge the annotation.
+Cut, Paste and Learn [36] 2017 Cut object instances and paste them onto random backgrounds. Fig. 6 .
+Scale and Blend [37] 2017 Cut and scale object instances, and blend them in meaningful locations.
+Context DA [38] 2018 Combine object instances using context guidance to obtain meaningful images.
+Simple Copy-Paste [39] 2021 Randomly paste object instances to images with large-scale jittering.
+Continuous Copy-Paste [40] 2021 Deploy Cut, Paste and Learn to videos.
+images can be used. For example, Mosaic [22] employs four images
+wherein the number of objects in one image is increased, thus sig-
+nificantly reducing the need for a large mini-batch size for dense
+prediction. AugMix [31] randomly applies basic multiple methods
+of image augmentation, and the results are adopted to merge with
+the original image.
+Non-instance-level image augmentation has extensions similar
+to those of intensity transformations. To account for the most im-
+portant area, PuzzleMix [32] discriminates the foreground from
+the background, and mixes important information within the fore-
+ground. Further, salient areas from multiple input images are
+maximized to synthesize each augmented image [33] , simultane-
+ously maximizing the diversity among the augmented images. To
+quickly locate dominant regions, SuperMix [34] employs a variant
+of the Newton iterative method. As in Hide-and-Seek [23] , Grid-
+Mix [35] divides images into fixed-size grids, and each patch of the
+output image is randomly taken from the corresponding patches of
+Fig. 4. GridMask [26] and its setting.
+two input images. Through this analysis, we believe that GridMask
+[87] can be adapted to fuse image pairs with 
+
+=== STRONA 6 ===
+M. Xu, S. Yoon, A. Fuentes et al. Pattern Recognition 137 (2023) 109347
+Table 6
+Studies relating to model-based image augmentation, label-conditional (top), label-preserving image-conditional (middle), and label-changing image-
+conditional (bottom).
+Paper Year Highlight
+BDA [45] 2017 Use CGAN to generate images optimized by a Monte Carlo EM algorithm. Fig. 7 .
+ImbCGAN [46] 2018 Deploy CGAN as image augmentation for unbalanced classes.
+BAGAN [47] 2018 Train an auto-encoder to initialize generator.
+DAGAN [48] 2018 Image is taken as the class condition for generator and discriminator. Fig. 8 .
+MFC-GAN [49] 2019 Use multiple fake classes to obtain a fine-grained image for minority class.
+IDA-GAN [50] 2021 Train a variational auto-encoder and CGAN simultaneously.
+S + U Learning [51] 2017 Translate synthetic images from a graphic model to realistic images using CGAN.
+AugGAN [52] 2018 Aim to semantically preserve object when changing its style.
+Plant-CGAN [53] 2018 Translate semantic instance layout to real images using CGAN.
+StyleAug [54] 2019 Change image style via style transfer.
+Shape bias [55] 2019 Transfer image style from painted images to mitigate texture bias of CNN.
+EmoGAN [56] 2018 Translate a neutral face with another emotion.
+δ-encoder [57] 2018 Image is taken as a class condition to generate images for new or infrequent class.
+Debiased NN [58] 2021 Merge style and content via style transfer and appropriate labels. Fig. 10 .
+StyleMix [59] 2021 Merge two images with style, content, and labels. Fig. 11 .
+GAN-MBD [60] 2021 Translate an image from one class to another while preserving semantics via multi-branch discriminator. Fig. 9 .
+SCIT [2] 2022 Translate healthy leaves to abnormal one while retaining its style.
+5.1. Unconditional image generation
+An image synthesis model benefits image augmentation, which
+enables it to produce new images. Theoretically, the distribution
+of generated images is similar to that in the original dataset for
+a generative adversarial network (GAN) model after training [88] .
+However, the generated images are not the same as the original
+images and can be considered as points located in the vicinity dis-
+tribution. In DCGAN [41] , two random noises or latent vectors can
+be interpolated to generate intermediate images, which can be re-
+garded as fluctuations between two original data points. Generally,
+a generative model with noise as input is deemed an uncondi-
+tional model, and the corresponding image generation process is
+considered unconditional image generation. If the datasets encom-
+pass a single class, as in the case of medical images with one ab-
+normal class [42] , an unconditional image generation model can be
+directly applied to perform augmentation. Furthermore, a specific
+Fig. 6. Cut, Paste and Learn in training and testing process [36] . unconditional model can be leveraged for an individual class in the
+presence of multiple classes [43 , 44] .
+reduce local artifacts. With the exception of boundaries,
