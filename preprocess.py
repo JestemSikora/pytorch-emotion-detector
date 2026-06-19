@@ -37,7 +37,7 @@ def get_transforms(model_name, mean=None, std=None):
 
 
 def get_minority_transforms(model_name, mean=None, std=None):
-    """Mocniejszy transform dla disgusted."""
+    """Łagodna augmentacja dla disgusted — zachowuje subtelne cechy twarzy."""
     if model_name not in _PARAMS:
         raise ValueError(f"Nieznany model: '{model_name}'. Dostępne: {list(_PARAMS.keys())}")
     p = _PARAMS[model_name]
@@ -47,15 +47,8 @@ def get_minority_transforms(model_name, mean=None, std=None):
         transforms.Resize(p['resize']),
         transforms.CenterCrop(p['crop']),
         transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(degrees=12),
-        transforms.ColorJitter(brightness=0.3, contrast=0.3),
-        transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 1.5)),
+        transforms.RandomRotation(degrees=8),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2),
         transforms.ToTensor(),
         transforms.Normalize(mean=_mean, std=_std),
-        transforms.RandomErasing(
-            p=0.5,
-            scale=(0.02, 0.15),
-            ratio=(0.3, 3.0),
-            value=0,
-        ),
     ])
