@@ -147,14 +147,24 @@ def train_and_evaluate(model, train_loader, test_loader, class_weights, epochs):
     # weight_decay = L2 regularization odpowiednik kernel_regularizer=l2() z Keras
     optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-4)
 
+    epoch_losses, epoch_accs = [], []
+
     for epoch in range(epochs):
         model.train()
+        running_loss, correct, total = 0.0, 0, 0
         for inputs, labels in train_loader:
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
-            loss = criterion(model(inputs), labels)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+            running_loss += loss.item() * inputs.size(0)
+            _, preds = torch.max(outputs, 1)
+            correct += (preds == labels).sum().item()
+            total   += labels.size(0)
+        epoch_losses.append(running_loss / total)
+        epoch_accs.append(correct / total)
 
     model.eval()
     all_preds, all_labels = [], []
@@ -170,12 +180,13 @@ def train_and_evaluate(model, train_loader, test_loader, class_weights, epochs):
     prec    = precision_score(all_labels, all_preds, average='weighted', zero_division=0)
     rec     = recall_score(all_labels, all_preds, average='weighted', zero_division=0)
     cm      = confusion_matrix(all_labels, all_preds)
-    return acc, bal_acc, prec, rec, cm
+    return acc, bal_acc, prec, rec, cm, epoch_losses, epoch_accs
 
 
 def run_experiment(train_dataset, test_dataset, epochs):
     num_classes = len(train_dataset.classes)
     accuracies, balanced_accuracies, precisions, recalls, confusion_matrices = [], [], [], [], []
+    all_epoch_losses, all_epoch_accs = [], []
 
     rskf = RepeatedStratifiedKFold(n_splits=2, n_repeats=5, random_state=42)
 
@@ -193,7 +204,7 @@ def run_experiment(train_dataset, test_dataset, epochs):
         test_loader  = DataLoader(test_subset,  batch_size=64, shuffle=False)
 
         model = CustomCNN().to(device)
-        acc, bal_acc, prec, rec, cm = train_and_evaluate(
+        acc, bal_acc, prec, rec, cm, e_losses, e_accs = train_and_evaluate(
             model, train_loader, test_loader, class_weights, epochs
         )
 
@@ -202,10 +213,32 @@ def run_experiment(train_dataset, test_dataset, epochs):
         precisions.append(prec)
         recalls.append(rec)
         confusion_matrices.append(cm)
+        all_epoch_losses.append(e_losses)
+        all_epoch_accs.append(e_accs)
         print(f"Fold {fold + 1:2d}: Accuracy={acc:.4f}, Balanced Accuracy={bal_acc:.4f}, "
               f"Precision={prec:.4f}, Recall={rec:.4f}")
 
-    return accuracies, balanced_accuracies, precisions, recalls, confusion_matrices
+    mean_epoch_losses = np.mean(all_epoch_losses, axis=0)
+    mean_epoch_accs   = np.mean(all_epoch_accs,   axis=0)
+    return accuracies, balanced_accuracies, precisions, recalls, confusion_matrices, mean_epoch_losses, mean_epoch_accs
+
+
+def plot_training_curves(epoch_losses, epoch_accs):
+    epochs = range(1, len(epoch_losses) + 1)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+    ax1.plot(epochs, epoch_losses)
+    ax1.set_title('Training Loss vs Epoch (średnia po foldach)')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss')
+
+    ax2.plot(epochs, epoch_accs)
+    ax2.set_title('Training Accuracy vs Epoch (średnia po foldach)')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Accuracy')
+
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_confusion_matrix(bal_accs, cms, class_names):
@@ -227,6 +260,45 @@ def plot_confusion_matrix(bal_accs, cms, class_names):
     plt.show()
 
 
+def plot_per_class_metrics(cms, class_names):
+    mean_cm   = np.mean(cms, axis=0)
+    recall    = np.diag(mean_cm) / (mean_cm.sum(axis=1) + 1e-8)
+    precision = np.diag(mean_cm) / (mean_cm.sum(axis=0) + 1e-8)
+    f1        = 2 * precision * recall / (precision + recall + 1e-8)
+
+    x = np.arange(len(class_names))
+    w = 0.25
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(x - w, precision, w, label='Precision')
+    ax.bar(x,     recall,    w, label='Recall')
+    ax.bar(x + w, f1,        w, label='F1')
+    ax.set_xticks(x)
+    ax.set_xticklabels(class_names, rotation=45, ha='right')
+    ax.set_ylim(0, 1)
+    ax.set_title('Per-class metrics: CustomCNN')
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def print_error_analysis(cms, class_names):
+    mean_cm      = np.mean(cms, axis=0)
+    mean_cm_norm = mean_cm / (mean_cm.sum(axis=1, keepdims=True) + 1e-8)
+
+    errors = [
+        (mean_cm_norm[i, j], class_names[i], class_names[j])
+        for i in range(len(class_names))
+        for j in range(len(class_names))
+        if i != j
+    ]
+    errors.sort(reverse=True)
+
+    print("\n=== CustomCNN — najczęstsze błędy klasyfikacji ===")
+    print(f"{'Prawdziwa':<12} → {'Predykcja':<12}  {'Częstość':>8}")
+    for rate, true_cls, pred_cls in errors[:5]:
+        print(f"{true_cls:<12} → {pred_cls:<12}  {rate:>8.2%}")
+
+
 if __name__ == '__main__':
     roots         = [DATA_PATH, TEST_PATH]
     minority_tf   = get_minority_transform()
@@ -237,7 +309,9 @@ if __name__ == '__main__':
     print(f'Zaladowano obrazow: {len(train_dataset)}')
     print(f'Klasy: {train_dataset.classes}')
 
-    accs, bal_accs, precs, recs, cms = run_experiment(train_dataset, test_dataset, EPOCHS)
+    accs, bal_accs, precs, recs, cms, epoch_losses, epoch_accs = run_experiment(
+        train_dataset, test_dataset, EPOCHS
+    )
 
     print(f'\n=== Wyniki CustomCNN ===')
     print(f'Srednia Accuracy:          {np.mean(accs):.4f}')
@@ -245,4 +319,7 @@ if __name__ == '__main__':
     print(f'Srednia Precision:         {np.mean(precs):.4f}')
     print(f'Srednia Recall:            {np.mean(recs):.4f}')
 
+    plot_training_curves(epoch_losses, epoch_accs)
     plot_confusion_matrix(bal_accs, cms, train_dataset.classes)
+    plot_per_class_metrics(cms, train_dataset.classes)
+    print_error_analysis(cms, train_dataset.classes)
