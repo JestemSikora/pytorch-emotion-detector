@@ -10,6 +10,7 @@ from sklearn.metrics import (confusion_matrix, precision_score, recall_score,
                              accuracy_score, balanced_accuracy_score)
 from sklearn.model_selection import RepeatedStratifiedKFold
 from torch.utils.data import DataLoader, Subset, Dataset
+import pickle
 
 from config import DATA_PATH, TEST_PATH
 
@@ -303,7 +304,7 @@ if __name__ == '__main__':
     roots         = [DATA_PATH, TEST_PATH]
     minority_tf   = get_minority_transform()
     base_tf       = get_base_transform()
-    train_dataset = SelectiveAugDataset(roots, minority_tf, base_tf)
+    train_dataset = SelectiveAugDataset(roots, base_tf, base_tf)
     test_dataset  = SelectiveAugDataset(roots, base_tf,     base_tf)
 
     print(f'Zaladowano obrazow: {len(train_dataset)}')
@@ -312,6 +313,15 @@ if __name__ == '__main__':
     accs, bal_accs, precs, recs, cms, epoch_losses, epoch_accs = run_experiment(
         train_dataset, test_dataset, EPOCHS
     )
+    results = { "custom_cnn" : {
+        "accuracies": accs,
+        "balanced_accuracies": bal_accs,
+        "precisions": precs,
+        "recalls": recs,
+        "confusion_matrices": cms
+    }}
+    with open("results_custom_cnn_no_augmentation.pkl", "wb") as f:
+        pickle.dump(results, f)
 
     print(f'\n=== Wyniki CustomCNN ===')
     print(f'Srednia Accuracy:          {np.mean(accs):.4f}')
