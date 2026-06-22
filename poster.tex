@@ -1,0 +1,232 @@
+\documentclass[25pt, a0paper, landscape, innermargin=12mm, blockverticalspace=10pt, colspace=12pt, subcolspace=0pt]{tikzposter}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{polski}
+\usepackage{babel}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{qrcode}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{multicol}
+
+\definecolor{AccentBlue}{HTML}{1A3A5C}
+\definecolor{LightBlue}{HTML}{EBF2F8}
+\definecolor{MediumBlue}{HTML}{3A6B9F}
+\definecolor{DarkText}{HTML}{1A1A1A}
+
+\usetheme{Default}
+\definecolorstyle{flatBlue}{
+    \colorlet{colorOne}{white}
+    \colorlet{colorTwo}{LightBlue}
+    \colorlet{colorThree}{MediumBlue}
+}{
+    \colorlet{backgroundcolor}{white}
+    \colorlet{framecolor}{white}
+    \colorlet{titlefgcolor}{white}
+    \colorlet{titlebgcolor}{AccentBlue}
+    \colorlet{blocktitlefgcolor}{white}
+    \colorlet{blocktitlebgcolor}{AccentBlue}
+    \colorlet{blockbodyfgcolor}{DarkText}
+    \colorlet{blockbodybgcolor}{white}
+    \colorlet{innerblockbodybgcolor}{LightBlue}
+    \colorlet{innerblockbodyfgcolor}{DarkText}
+    \colorlet{innerblocktitlebgcolor}{MediumBlue}
+    \colorlet{innerblocktitlefgcolor}{white}
+    \colorlet{notebgcolor}{white}
+    \colorlet{notefgcolor}{DarkText}
+    \colorlet{notefrcolor}{MediumBlue}
+}
+\usecolorstyle{flatBlue}
+
+\usetitlestyle{Default}
+\settitle{
+    \centering
+    \vbox{
+        \color{white}\bfseries\fontsize{42}{50}\selectfont
+        Porównanie metod transfer learning i niestandardowej sieci CNN\\[4mm]
+        \fontsize{26}{32}\selectfont\color{white!90}
+        w zadaniu klasyfikacji emocji na podstawie ekspresji twarzy\\[6mm]
+        \fontsize{20}{24}\selectfont\color{white!80}
+        Autorzy: Karol Koenig, Wiktoria Sikora, Nikola Niełacna
+    }
+}
+\usebackgroundstyle{Default}
+\usenotestyle{Default}
+
+\setlist{nosep,leftmargin=*,itemsep=3pt,topsep=3pt,parsep=0pt}
+
+\begin{document}
+
+\maketitle[width=0.985\textwidth,titletoblockverticalspace=8mm]
+
+\begin{columns}
+
+% ===== LEWA KOLUMNA (28%) =====
+\column{0.28}
+
+\block{Wprowadzenie}{
+    \justify
+    Rozpoznawanie ekspresji twarzy (\textit{Facial Expression Recognition}, FER)
+    jest zadaniem z~podobszaru \textbf{computer vision}, polegającym na klasyfikacji
+    obrazów twarzy do jednej z~podstawowych kategorii emocji.
+    W~projekcie wykorzystano zbiór danych \textbf{Kaggle Emotion Detection FER},
+    zawierający \textbf{35\,887 obrazów} w~skali szarości o~rozdzielczości
+    $48\times48$ pikseli, z~podziałem na 7 klas emocji:
+    \begin{center}
+        \textit{angry, disgusted, fearful, happy, neutral, sad, surprised}
+    \end{center}
+    \bigskip
+    \small
+    \textbf{Literatura:}\newline
+    [1] M. Xu et al., \textit{A Comprehensive Survey of Image Augmentation Techniques
+    for Deep Learning}, Pattern Recognition 137, 2023.\newline
+    [2] K. He et al., \textit{Deep Residual Learning for Image Recognition},
+    IEEE CVPR, 2016.\newline
+    [3] K. Simonyan, A. Zisserman, \textit{Very Deep Convolutional Networks for
+    Large-Scale Image Recognition}, ICLR, 2015.
+    \normalsize
+}
+
+\block{Problem badawczy}{
+    \justify
+    \begin{enumerate}
+        \item \textbf{Porównanie} trzech architektur \textit{transfer learning}
+              (ResNet18, VGG16, ResNet50) z~autorską siecią \textbf{CustomCNN}
+              trenowaną od podstaw.
+        \item Ocena skuteczności \textbf{ważenia klas} w~funkcji kosztu
+              jako metody radzenia sobie z~problemem niezbalansowanych danych.
+        \item Identyfikacja \textbf{najczęściej mylonych par emocji}
+              i~analiza przyczyn błędów klasyfikacji.
+    \end{enumerate}
+}
+
+\block{Metryki per-class}{
+    \centering
+    \includegraphics[width=\linewidth]{img/per_class_metrics.pdf}\\[2mm]
+    {\small Rysunek 3. Precision, Recall i F1 dla każdej klasy i modelu.}
+}
+
+% ===== KOLUMNA CENTRALNA (42%) =====
+\column{0.42}
+
+\colorlet{saveTitleBg}{blocktitlebgcolor}
+\colorlet{saveBodyBg}{blockbodybgcolor}
+\colorlet{blocktitlebgcolor}{AccentBlue}
+\colorlet{blockbodybgcolor}{LightBlue}
+
+\block{\centering Porównanie modeli --- średnie metryki (10-fold CV)}{
+    \centering
+    \includegraphics[width=\linewidth]{img/model_comparison.pdf}\\[2mm]
+    {\small Rysunek 1. Porównanie średnich metryk dla 4 modeli.}
+
+    \bigskip
+    \begin{center}
+    {\renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Model} & \textbf{Accuracy} & \textbf{Balanced Acc.} & \textbf{Precision} & \textbf{Recall} \\
+        \midrule
+        VGG16      & 0,6137(59) & \textbf{0,5915(86)} & \textbf{0,6215(80)} & \textbf{0,6137(59)} \\
+        CustomCNN  & 0,5881(47) & 0,5627(77)           & 0,5853(57)           & 0,5881(47) \\
+        ResNet18   & 0,5814(58) & 0,5517(68)           & 0,5882(89)           & 0,5814(58) \\
+        ResNet50   & 0,5381(38) & 0,5012(61)           & 0,5423(71)           & 0,5381(38) \\
+        \bottomrule
+    \end{tabular}}\\[2mm]
+    {\small Tabela 1. Średnie wartości metryk (10-fold CV) z~odchyleniem standardowym.}
+    \end{center}
+
+    \bigskip
+    \justify
+    \textbf{VGG16} osiągnął najwyższą zbalansowaną dokładność
+    (Balanced Acc $\approx 0{,}59$). \textbf{CustomCNN} ($\approx 0{,}56$),
+    trenowana 60 epok od zera, przewyższa oba modele ResNet. ResNet50 ---
+    najgłębsza architektura --- osiąga najsłabsze wyniki, co sugeruje
+    trudności z~efektywnym fine-tuningiem przy ograniczonej liczbie 
+    odmrożonych warstw, co było wymuszone ograniczeniami sprzętowymi.
+}
+
+\colorlet{blocktitlebgcolor}{saveTitleBg}
+\colorlet{blockbodybgcolor}{saveBodyBg}
+
+\block{Macierze pomyłek}{
+    \centering
+    \includegraphics[width=\linewidth]{img/confusion_matrices.pdf}\\[2mm]
+    {\small Rysunek 2. Znormalizowane macierze pomyłek dla 4 modeli.}
+
+    \bigskip
+    \justify
+    \textbf{Najczęstsze błędy (wszystkie modele):}
+    \textit{disgusted $\to$ angry} (17--23\%), \textit{fearful $\leftrightarrow$ sad}
+    (16--19\%), \textit{neutral $\to$ sad} (15--21\%). Emocje \textit{happy}
+    (F1 $\approx$ 0{,}81) i~\textit{surprised} (F1 $\approx$ 0{,}73) rozpoznawane
+    są najpewniej. \textit{Fearful} (F1 $\approx$ 0{,}46) i~\textit{disgusted}
+    (F1 $\approx$ 0{,}49) pozostają najtrudniejsze. Pomyłki fearful $\leftrightarrow$ sad
+    oraz neutral $\leftrightarrow$ sad wskazują na wizualne podobieństwo tych emocji
+    w~zbiorze danych.
+}
+
+% ===== PRAWA KOLUMNA (30%) =====
+\column{0.30}
+
+\block{Protokół eksperymentalny}{
+    \justify
+
+    \textbf{Walidacja:} RepeatedStratifiedKFold ($n_{\mathrm{splits}}{=}2$,
+    $n_{\mathrm{repeats}}{=}5$). Zbiory treningowy i~testowy scalone
+    przed podziałem (35\,887 obrazów łącznie).
+
+    \textbf{Transfer learning:} modele ImageNet-pretrained (ResNet18, VGG16, ResNet50).
+    Odblokowane ostatnie warstwy konwolucyjne +~wymieniona głowa klasyfikatora.
+    Fine-tuning: 10 epok/fold. Dwie wartości learning rate:
+    $10^{-4}$ dla warstw pretrenowanych, $10^{-3}$ dla nowej głowy.
+    Przetwarzanie danych: resize + crop + normalizacja.
+
+    \textbf{CustomCNN:} architektura 4-blokowa (Conv $\to$ ReLU $\to$ BatchNorm
+    $\to$ MaxPool $\to$ Dropout2D), trenowana \textbf{60 epok} od zera.
+    Adam (lr $= 10^{-4}$, weight\_decay $= 10^{-4}$). Wejście: $1 \times 48 \times 48$ (grayscale).
+    Przetwarzanie danych: resize + crop + normalizacja.
+
+    \textbf{Funkcja kosztu:} CrossEntropyLoss z~wagami klas liczonymi dynamicznie
+    dla każdego foldu: $w_c = N_{\mathrm{train}} / (K \cdot N_c)$, gdzie $K = 7$,
+    $N_c$ --- liczba próbek klasy $c$ w~podzbiorze treningowym foldu.
+
+    \textbf{Metryki:} Accuracy, Balanced Accuracy, Weighted Precision,
+    Weighted Recall, Confusion Matrix.
+
+    \textbf{Sprzęt:} AMD Radeon RX 6700 XT, DirectML, PyTorch 2.4.
+}
+
+\block{Wnioski}{
+    \justify
+    \begin{enumerate}
+        \item \textbf{VGG16} (Balanced Acc $\approx 0{,}59$) osiąga najlepszą
+              zbalansowaną dokładność spośród testowanych modeli --- ta
+              architektura lepiej sprawdza się w zadaniu.
+        \item \textbf{CustomCNN} (Balanced Acc $\approx 0{,}56$), trenowana
+              60 epok od zera, przewyższa ResNet18 i~ResNet50. Mniejsza ilość parametrów
+              pozwala na bardziej dogłębne uczenie. Wynik potwierdza
+              wartość dedykowanej architektury dla konkretnych zastosowań.
+        \item Ważenie klas w~funkcji kosztu \textbf{częściowo łagodzi}
+              problem niezbalansowania we wszystkich modelach, ale klasa
+              \textit{disgusted} (1{,}5\% danych) pozostaje wyzwaniem.
+              Rozwiązaniem może być zastosowanie technik generatywnych (GAN, Diffusion).
+        \item Pomyłki \textbf{fearful $\leftrightarrow$ sad} oraz
+              \textbf{neutral $\leftrightarrow$ sad} wskazują na wizualne
+              podobieństwo tych emocji.
+    \end{enumerate}
+    \bigskip
+}
+
+\block{Kod źródłowy}{
+    \centering
+    \qrcode[height=2.5cm]{https://github.com/JestemSikora/pytorch-emotion-detector}\\[2mm]
+    {\small Repozytorium projektu}
+}
+
+\end{columns}
+
+\end{document}
